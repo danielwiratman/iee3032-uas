@@ -13,10 +13,7 @@
     </head>
 
     <body>
-        <center
-            class="row"
-            style="background-color: #002b5b; padding-bottom: 20px"
-        >
+        <center class="row" style="padding-bottom: 20px">
             <img
                 src="{% static 'CIT.jpeg' %}"
                 style="float: left; height: 75px; margin-left: 40px"
@@ -25,18 +22,22 @@
                 src="{% static 'IEE.png' %}"
                 style="float: right; height: 75px; margin-right: 40px"
             />
-            <h1 style="color: white"><b>Dasbor Pabrik Smart Farm</b></h1>
+            <h1><b>Dasbor Pabrik Smart Farm</b></h1>
+            <h2>UAS IEE3032 - Daniel Wiratman 202000205</h2>
         </center>
-        <div style="background-color: #57c5b6; padding: 1px">
+        <div style="padding: 1px">
             <center>
-                <h3 style="color: white">
+                <h3>
                     Voltase Pompa Air:
                     <span id="voltase-pompa-air"></span> V
                 </h3>
                 <div class="row" style="display: flex; justify-content: center">
                     <div
                         class="col-md-3"
-                        style="background-color: #d8d8d8; border-radius: 10px"
+                        style="
+                            border-radius: 10px;
+                            box-shadow: 0 0 10px gainsboro;
+                        "
                     >
                         <canvas id="voltase-pompa-air-chart"></canvas>
                     </div>
@@ -47,7 +48,7 @@
                 style="
                     border-radius: 10px;
                     margin: 10px;
-                    background-color: #d8d8d8;
+                    box-shadow: 0 0 10px gainsboro;
                 "
             >
                 <div class="col-md-4">
@@ -64,6 +65,17 @@
                 </div>
             </div>
         </div>
+        <center>
+            <table id="content-table">
+                <tr>
+                    <th>Waktu</th>
+                    <th>Suhu</th>
+                    <th>Kelembaban</th>
+                    <th>Cahaya</th>
+                    <th>Voltase Pompa Air</th>
+                </tr>
+            </table>
+        </center>
     </body>
 
     <script>
@@ -149,6 +161,7 @@
                 url: endpoint,
                 success: function (data) {
                     var value = document.getElementById(id);
+                    data.value = parseFloat(data.value).toFixed(2);
                     value.innerHTML = data.value;
                 },
                 error: function (error_data) {
@@ -163,12 +176,67 @@
                 url: endpoint,
                 success: function (data) {
                     var state = document.getElementById(id);
+                    data.state = parseFloat(data.state) > 0 ? data.state : 0;
                     state.innerHTML = data.state;
                 },
                 error: function (error_data) {
                     console.log(error_data);
                 },
             });
+        }
+
+        TABLE_DATA = [];
+
+        function updateTable() {
+            $.ajax({
+                method: "GET",
+                url: "/sensor/suhu",
+                success: function (data) {
+                    TABLE_DATA[0] = data.chart_data.reverse();
+                    TABLE_DATA[4] = data.time_data.reverse()
+                },
+            });
+            $.ajax({
+                method: "GET",
+                url: "/sensor/kelembaban",
+                success: function (data) {
+                    TABLE_DATA[1] = data.chart_data.reverse();
+                },
+            });
+            $.ajax({
+                method: "GET",
+                url: "/sensor/cahaya",
+                success: function (data) {
+                    TABLE_DATA[2] = data.chart_data.reverse();
+                },
+            });
+            $.ajax({
+                method: "GET",
+                url: "/actuator/voltase_pompa_air",
+                success: function (data) {
+                    TABLE_DATA[3] = data.chart_data.reverse();
+                },
+            });
+            if (TABLE_DATA.length < 5) {
+                return;
+            }
+            document.getElementById("content-table").innerHTML = `<tr>
+                <th>Waktu</th>
+                <th>Suhu</th>
+                <th>Kelembaban</th>
+                <th>Cahaya</th>
+                <th>Voltase Pompa Air</th>
+            </tr>`;
+            for (let i = 0; i < 10; i++) {
+                document.getElementById("content-table").innerHTML += `<tr>
+                    <td>${TABLE_DATA[4][i]}</td>
+                    <td>${parseFloat(TABLE_DATA[0][i]).toFixed(2)}&deg;C</td>
+                    <td>${parseFloat(TABLE_DATA[1][i]).toFixed(2)}%</td>
+                    <td>${parseFloat(TABLE_DATA[2][i]).toFixed(2)} lux</td>
+                    <td>${parseInt(TABLE_DATA[3][i]) > 0 ? parseInt(TABLE_DATA[3][i]).toFixed(2) : 0} V</td>
+                </tr>`;
+            }
+            TABLE_DATA = [];
         }
 
         var voltase_pompa_air_graph;
@@ -205,20 +273,46 @@
             updateSensorValue("/sensor/suhu", "suhu");
             updateSensorValue("/sensor/kelembaban", "kelembaban");
             updateSensorValue("/sensor/cahaya", "cahaya");
-            updateActuatorState("/actuator/voltase_pompa_air", "voltase-pompa-air");
+            updateActuatorState(
+                "/actuator/voltase_pompa_air",
+                "voltase-pompa-air"
+            );
 
             updateGraph("suhu_graph", "/sensor/suhu");
             updateGraph("kelembaban_graph", "/sensor/kelembaban");
             updateGraph("cahaya_graph", "/sensor/cahaya");
-            updateGraph("voltase_pompa_air_graph", "/actuator/voltase_pompa_air");
+            updateGraph(
+                "voltase_pompa_air_graph",
+                "/actuator/voltase_pompa_air"
+            );
+            updateTable();
         }, 2000);
+
+        function transpose(matrix) {
+            const result = matrix[0].map((col, i) =>
+                matrix.map((row, j) => row[i])
+            );
+            return result;
+        }
     </script>
     <style>
+        body {
+            margin: 60px 20px;
+        }
         .containers {
             padding: 20px;
         }
         h3 {
             text-align: center;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+        table {
+            border-collapse: collapse;
+            font-size: 20px;
         }
     </style>
 </html>
