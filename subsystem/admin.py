@@ -4,7 +4,7 @@ from .models import Sensor, SensorLog, Actuator, ActuatorLog
 
 @admin.register(Sensor)
 class SensorAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "value", "subsystem")
+    list_display = ("id", "name", "value")
     
 @admin.register(SensorLog)
 class SensorLogAdmin(admin.ModelAdmin):
@@ -12,7 +12,7 @@ class SensorLogAdmin(admin.ModelAdmin):
     
 @admin.register(Actuator)
 class ActuatorAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "state", "subsystem")
+    list_display = ("id", "name", "state")
     
 @admin.register(ActuatorLog)
 class ActuatorLogAdmin(admin.ModelAdmin):

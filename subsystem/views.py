@@ -74,7 +74,7 @@ class KelembabanView(SensorTemplateView):
 class CahayaView(SensorTemplateView):
     sensor_name = "Cahaya"
     
-class SmartFarmView(ActuatorTemplateView):
+class VoltasePompaAirView(ActuatorTemplateView):
     actuator_name = "Voltase Pompa Air"
     sensor1_name = "Suhu"
     sensor2_name = "Kelembaban"

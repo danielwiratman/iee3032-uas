@@ -9,5 +9,5 @@ urlpatterns = [
     path('sensor/suhu', views.SuhuView.as_view()),
     path('sensor/kelembaban', views.KelembabanView.as_view()),
     path('sensor/cahaya', views.CahayaView.as_view()),
-    path('actuator/', views.AirPurifierView.as_view()),
+    path('actuator/voltase_pompa_air', views.VoltasePompaAirView.as_view()),
 ]
